@@ -85,11 +85,11 @@ cmake --build ~/sysu-stage2/build -t install
 对于使用其他操作系统的同学，我们准备了一份 [docker 开发环境](https://hub.docker.com/r/wukan0621/sysu-lang)。
 
 ```bash
-docker pull wukan0621/sysu-lang
+docker pull wukan0621/sysu-lang:unstable-slim
 docker run \
   --name sysu-lang \
   -v "$PWD/workspace:/workspace" \
-  -it wukan0621/sysu-lang \
+  -it wukan0621/sysu-lang:unstable-slim \
   bash
 # 随后可以在宿主机当前目录的 workspace/SYsU-lang 目录下开发
 ```

@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.4
-FROM debian:11
+FROM debian:unstable-slim
 WORKDIR /autograder
 WORKDIR /workspace
 VOLUME /workspace
