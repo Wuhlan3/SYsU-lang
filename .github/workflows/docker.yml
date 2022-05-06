@@ -7,11 +7,9 @@ name: Docker
 
 on:
   push:
-    branches: [latest, unstable-slim]
-    # Publish semver tags as releases.
-    tags: ["v*.*.*.*"]
+    branches: [unstable-slim]
   pull_request:
-    branches: [latest, unstable-slim]
+    branches: [unstable-slim]
 
 env:
   # Use docker.io for Docker Hub if empty
@@ -30,12 +28,6 @@ jobs:
       id-token: write
 
     steps:
-      - name: Checkout repository
-        if: ${{ github.ref != 'refs/heads/unstable-slim' }}
-        uses: actions/checkout@v2
-        with:
-          submodules: true
-
       - name: Checkout repository for unstable-slim
         if: ${{ github.ref == 'refs/heads/unstable-slim' }}
         uses: actions/checkout@v2
@@ -105,6 +97,7 @@ jobs:
         if: ${{ github.ref == 'refs/heads/unstable-slim' }}
         id: build-and-push-riscv64
         uses: docker/build-push-action@v2.10.0
+        continue-on-error: true
         with:
           platforms: linux/riscv64
           context: .
