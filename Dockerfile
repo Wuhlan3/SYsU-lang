@@ -36,7 +36,7 @@ apt update -y
 apt upgrade -y
 apt install --no-install-recommends -y \
     clang libclang-dev llvm-dev \
-    zlib1g-dev lld flex bison \
+    zlib1g-dev lld-14 flex bison \
     ninja-build cmake python3 git
 apt clean -y
 mv /workspace/SYsU-lang/run.sh /autograder/run

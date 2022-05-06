@@ -21,7 +21,7 @@ import subprocess
 
 
 def main(*argv):
-    return subprocess.run(("ld.lld",)+argv[1:]).returncode
+    return subprocess.run(("ld.lld-14",)+argv[1:]).returncode
 
 
 if __name__ == '__main__':
