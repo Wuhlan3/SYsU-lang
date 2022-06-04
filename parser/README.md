@@ -2,7 +2,9 @@
 
 ## 实验描述
 
-在本次语法分析实验中，你被希望完成一个语法分析器，接受来自 `sysu-lexer` 的输入，产生与 `clang -cc1 -ast-dump=json` 相当的输出。注意，以下 log 省略了无关内容。
+在本次语法分析实验中，你被希望完成一个语法分析器，接受来自 `sysu-lexer` 的输入，产生与 `clang -cc1 -ast-dump=json` 相当的输出。预期的代码行数为 1000 行，预期的完成时间为 24 小时 ～ 72 小时。
+
+注意，以下 log 省略了无关内容。
 
 ```bash
 $ ( export PATH=~/sysu/bin:$PATH \
@@ -125,7 +127,7 @@ $ ( export PATH=~/sysu/bin:$PATH \
 
 本目录下提供了一个基于 bison + `llvm::json` 实现的模板，接受词法分析器的输出，你可以基于此继续实现完整的逻辑，也可以使用其他的工具实现，如 `antlr4`，但不得使用其提供的 [C 语言模板](https://github.com/antlr/grammars-v4/blob/master/c/C.g4)；也不得使用任何封装好的库直接获得 ast，如 `libclang`。
 
-### Q & A：实验要求太抽象了，需要一个更直观的例子！
+### Q & A：实验要求太抽象了，需要一个更直观的例子
 
 考虑到 json 格式不方便肉眼调试，你可以像这样，输出更加符合人眼阅读方式的语法树，辅助调试。
 
@@ -282,6 +284,8 @@ flowchart TD;
   LD_LIBRARY_PATH=~/sysu/lib:$LD_LIBRARY_PATH &&
   sysu-compiler --unittest=parser-1 "**/*.sysu.c" )
 ```
+
+此外，[107_long_code2.sysu.c](../tester/h_functional/107_long_code2.sysu.c) 这个算例在测试时直接使用 `clang` 导出的语法树大小为 8.9G，助教这里直接给出了[压缩后的语法树](../tester/h_functional/107_long_code2.json.gz)。由于该算例语法树层级过多，评测时允许超时跳过。但你被鼓励去解决这一问题。
 
 **根据同学们的反馈下调了实验难度，只需通过 `parser-1` 即可通过本次实验，`parser-2`、`parser-3` 列为本次实验的挑战选项。**
 

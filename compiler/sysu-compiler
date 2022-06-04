@@ -107,22 +107,34 @@ def main(*argv):
             filename = filenames[ff]
             logging.getLogger(__name__).info(
                 "[{}/{}] {}".format(ff, len(filenames), filename))
-            command = preprocessor + " " + filename
-            src = subprocess.run(
-                command, timeout=time_out, stdout=subprocess.PIPE, shell=True).stdout
-            command0 = command+" | "+clang + " -cc1 -ast-dump=json"
-            command1 = command+" | "+clang + " -cc1 -dump-tokens 2>&1 | "+parser
-            ast0 = json.loads(subprocess.run(
-                clang + " -cc1 -ast-dump=json",
-                input=src, timeout=time_out,  stdout=subprocess.PIPE, shell=True).stdout)
-            gc.collect()
-            ast1 = json.loads(subprocess.run(
-                clang + " -cc1 -dump-tokens 2>&1 |"+parser,
-                input=src, timeout=time_out,  stdout=subprocess.PIPE, shell=True).stdout)
-            gc.collect()
-            r = check_ast(ast0, ast1, testcase, command0, command1)
-            if r != 0:
-                return r
+            try:
+                command = preprocessor + " " + filename
+                src = subprocess.run(
+                    command, timeout=time_out, stdout=subprocess.PIPE, shell=True).stdout
+                command0 = command+" | "+clang + " -cc1 -ast-dump=json"
+                command1 = command+" | "+clang + " -cc1 -dump-tokens 2>&1 | "+parser
+                ast0 = None
+                if filename.endswith(".sysu.c"):
+                    gz = filename[0:filename.rfind(".sysu.c")]+".json.gz"
+                    if os.path.exists(gz):
+                        with gzip.open(gz, "rb") as f:
+                            ast0 = f.read()
+                if ast0 == None:
+                    ast0 = subprocess.run(
+                        clang + " -cc1 -ast-dump=json",
+                        input=src, timeout=time_out,
+                        stdout=subprocess.PIPE, shell=True).stdout
+                ast0 = json.loads(ast0)
+                gc.collect()
+                ast1 = json.loads(subprocess.run(
+                    clang + " -cc1 -dump-tokens 2>&1 |"+parser,
+                    input=src, timeout=time_out,  stdout=subprocess.PIPE, shell=True).stdout)
+                gc.collect()
+                r = check_ast(ast0, ast1, testcase, command0, command1)
+                if r != 0:
+                    return r
+            except subprocess.TimeoutExpired:
+                logging.getLogger(__name__).warning("TimeoutExpired. Skip.")
         return 0
 
     def unittest_lexer(testcase, clang, preprocessor, lexer, filenames, time_out):
@@ -250,49 +262,60 @@ def main(*argv):
                         [clang, "-O3", "-S", "-emit-llvm", "-o-", filename],
                         timeout=time_out,
                         stdout=subprocess.PIPE).stdout]
-                test_clang = 0
-                if test_clang:
-                    sysu.append(subprocess.run(
-                        [clang, "-O0", "-S", "-emit-llvm", "-o-", filename],
-                        timeout=time_out,
-                        stdout=subprocess.PIPE).stdout)
-                else:
-                    s = subprocess.run(
-                        ["clang", "-E", "-O0", filename],
-                        timeout=time_out,
-                        stdout=subprocess.PIPE)
-                    if s.returncode:
-                        return wk_exit(s.returncode)
-                    s = s.stdout
-                    s = subprocess.run(
-                        [clang, "-cc1", "-O0", "-ast-dump=json"],
-                        timeout=time_out,
-                        input=s,
-                        stdout=subprocess.PIPE)
-                    if s.returncode:
-                        return wk_exit(s.returncode)
-                    s = s.stdout
-                    s = json.loads(s)
-                    gc.collect()
-                    s = json.dumps(s).encode(encoding="ascii")
-                    for it in [generator, optimizer]:
-                        s = subprocess.run(
-                            [it],
-                            timeout=time_out,
-                            input=s,
-                            stdout=subprocess.PIPE)
-                        if s.returncode:
-                            return wk_exit(s.returncode)
-                        s = s.stdout
-                    sysu.append(s)
-                inputs = None
-                if filename.endswith(".sysu.c"):
-                    gz = filename[0:filename.rfind(".sysu.c")]+".in.gz"
-                    if os.path.exists(gz):
-                        with gzip.open(gz, "rb") as f:
-                            inputs = f.read()
                 res = []
                 try:
+                    test_clang = 0
+                    if test_clang:
+                        sysu.append(subprocess.run(
+                            [clang, "-O0", "-S", "-emit-llvm", "-o-", filename],
+                            timeout=time_out,
+                            stdout=subprocess.PIPE).stdout)
+                    else:
+                        s = None
+                        if filename.endswith(".sysu.c"):
+                            gz = filename[0:filename.rfind(
+                                ".sysu.c")]+".json.gz"
+                            if os.path.exists(gz):
+                                with gzip.open(gz, "rb") as f:
+                                    s = f.read()
+                        if s == None:
+                            s = subprocess.run(
+                                ["clang", "-E", "-O0", filename],
+                                timeout=time_out,
+                                stdout=subprocess.PIPE)
+                            if s.returncode:
+                                return wk_exit(s.returncode)
+                            s = s.stdout
+                            s = subprocess.run(
+                                [clang, "-cc1", "-O0", "-ast-dump=json"],
+                                timeout=time_out,
+                                input=s,
+                                stdout=subprocess.PIPE)
+                            if s.returncode:
+                                return wk_exit(s.returncode)
+                            s = s.stdout
+                        s = json.loads(s)
+                        gc.collect()
+                        s = json.dumps(s).encode(encoding="ascii")
+                        for it in [generator, optimizer]:
+                            s = subprocess.run(
+                                [it],
+                                timeout=time_out,
+                                input=s,
+                                stdout=subprocess.PIPE)
+                            if s.returncode:
+                                return wk_exit(s.returncode)
+                            s = s.stdout
+                        sysu.append(s)
+                    log = "Compile Finish."
+                    logging.getLogger(__name__).info(log)
+                    results["tests"][ff]["output"] += log + "\n"
+                    inputs = None
+                    if filename.endswith(".sysu.c"):
+                        gz = filename[0:filename.rfind(".sysu.c")]+".in.gz"
+                        if os.path.exists(gz):
+                            with gzip.open(gz, "rb") as f:
+                                inputs = f.read()
                     for it in sysu:
                         with open(ir, "wb") as f:
                             f.write(it)
@@ -335,12 +358,11 @@ def main(*argv):
 
                             score = score + 1
                 except subprocess.TimeoutExpired:
-                    if len(res) != 1:
-                        logging.getLogger(__name__).error(
-                            "fail: TimeoutExpired")
-                        return wk_exit(-1)
-                    if get_tm(res[0]) > 0:
+                    if len(res) == 1 and get_tm(res[0]) > 0:
                         performance.append(get_tm(res[0])/(time_out * 1000000))
+                    log = "TimeoutExpired."
+                    logging.getLogger(__name__).warning(log)
+                    results["tests"][ff]["output"] += log + "\n"
             if len(performance):
                 results["leaderboard"] = [{
                     "name": "performance",
@@ -447,11 +469,6 @@ def main(*argv):
         type=int,  # 慎重测试！
         default=120)
     parser.add_argument(
-        "--unittest-skip-filesize",
-        help="'-1' for no skip (default 32768)",
-        type=int,  # 慎重测试！
-        default=32768)
-    parser.add_argument(
         "-S",
         help="Only run preprocess and compilation steps",
         action="store_true")
@@ -482,9 +499,6 @@ def main(*argv):
     if args.convert_sysy:
         return convert_sysy(filenames)
     if args.unittest:
-        if args.unittest_skip_filesize >= 0:
-            filenames = list(filter(lambda x: os.path.getsize(
-                x) < args.unittest_skip_filesize, filenames))
         filenames.sort()
         time_out = None
         if args.unittest_timeout >= 0:

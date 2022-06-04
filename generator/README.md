@@ -2,7 +2,7 @@
 
 ## 实验描述
 
-在本次 IR（中间代码）生成实验中，你被希望完成一个 IR 生成器，接受来自 `sysu-parser` 或 `clang -cc1 -ast-dump=json` 的语法树输入，产生 LLVM-IR。
+在本次 IR（中间代码）生成实验中，你被希望完成一个 IR 生成器，接受来自 `sysu-parser` 或 `clang -cc1 -ast-dump=json` 的语法树输入，产生 LLVM IR。预期的代码行数为 1500 行，预期的完成时间为 36 小时 ～ 108 小时。
 
 ```bash
 $ ( export PATH=~/sysu/bin:$PATH \
@@ -33,7 +33,7 @@ attributes #0 = { noinline nounwind optnone "correctly-rounded-divide-sqrt-fp-ma
 !1 = !{!"Debian clang version 11.0.1-2"}
 ```
 
-注意，你的输出不必与 `clang -cc1 -O0 -S -emit-llvm` 完全相同，只要你的 LLVM-IR 在经过编译后与其有相同的输出与返回值。
+注意，你的输出不必与 `clang -cc1 -O0 -S -emit-llvm` 完全相同，只要你的 LLVM IR 在经过编译后与其有相同的输出与返回值。
 
 ```bash
 $ ( export PATH=~/sysu/bin:$PATH \
@@ -52,14 +52,35 @@ entry:
 }
 ```
 
-本目录下提供了一个模板，你可以基于此继续完成整个实验。如果你使用了来自 LLVM 的组件，你需要将其加入本目录下 `CMakeLists.txt` 中的 `llvm_map_components_to_libnames`，否则可能无法通过编译。你可以终端执行 `llvm-config --components`，查看所有的 LLVM 组件名称。然而，不得使用任何封装好的库从源码直接获得 LLVM-IR，如 `libclang`。
+至此一个初级的 SYsU 编译器就完成了！你可以使用 `lli` JIT 地执行编译出来的代码。
 
-### 一些可能有用的小技巧：LLVM-IR 可视化
+```bash
+$ ( export PATH=~/sysu/bin:$PATH \
+  CPATH=~/sysu/include:$CPATH \
+  LIBRARY_PATH=~/sysu/lib:$LIBRARY_PATH \
+  LD_LIBRARY_PATH=~/sysu/lib:$LD_LIBRARY_PATH &&
+  sysu-preprocessor tester/functional/000_main.sysu.c |
+  sysu-lexer |
+  sysu-parser |
+  sysu-generator |
+  lli --load=libsysy.so --load=libsysu.so ) # 该输出来自运行时库的计时统计
+TOTAL: 0H-0M-0S-0us
+$ echo $? # 在 Unix & Linux 中，可以通过 echo $? 来查看最后运行的命令的返回值对 256 取模后的结果。
+3
+```
+
+如果你使用了来自 LLVM 的其他组件，你需要将其加入本目录下 `CMakeLists.txt` 中的 `llvm_map_components_to_libnames`，否则可能无法通过编译。你可以终端执行 `llvm-config --components`，查看所有的 LLVM 组件名称。然而，不得使用任何封装好的库从 C 语言源码直接获得 LLVM IR，如 `libclang`。
+
+### 一些可能有用的小技巧：LLVM IR 可视化
 
 你可以像这样，借助 `opt -dot-cfg` 选项，生成一个输入的 CFG 可视化。终端执行下述指令，将在目录下生成 `.main.dot` 文件，对应源代码中 `main` 函数的 CFG 图。
 
 ```bash
-( clang -E tester/functional/027_if2.sysu.c |
+( export PATH=~/sysu/bin:$PATH \
+  CPATH=~/sysu/include:$CPATH \
+  LIBRARY_PATH=~/sysu/lib:$LIBRARY_PATH \
+  LD_LIBRARY_PATH=~/sysu/lib:$LD_LIBRARY_PATH &&
+  clang -E tester/functional/027_if2.sysu.c |
   clang -cc1 -O0 -S -emit-llvm |
   opt -dot-cfg )
 ```
@@ -75,14 +96,7 @@ entry:
 
 你需要提交一份实验报告，简要记录你的实验过程、遇到的难点以及解决的方法，并在报告中附上排行榜的上榜截图；助教会定期检查排行榜上的代码。本次实验仅要求功能完全正确，因此只要成功进入排行榜，本次实验即视为通过，排行榜上的成绩与性能对本次实验没有影响。
 
-注意：评测机的系统为 `debian:11`，对应软件依赖的版本为：
-
-- clang@11.0.1
-- llvm@11.0.1
-- flex@2.6.4
-- bison@3.7.5
-
-你需要保证你的代码可以在上述环境中正确工作。
+注意：你需要保证你的代码可以在[评测机环境](../Dockerfile)中正确工作。
 
 ### 自动评测细则
 
@@ -96,7 +110,7 @@ entry:
   sysu-compiler --unittest=benchmark_generator_and_optimizer_1 "**/*.sysu.c" )
 ```
 
-由于评测机的内存足够大，单次评测内存设置为 10GB，总时限为一小时，评测时会将 `generator`、`optimizer` 目录以外的内容替换成本仓库中的内容，且设置 `--unittest-skip-filesize -1`，运行时长超过 2 分钟的编译结果会被跳过。因此本次实验中评测系统没有给出满分是正常的情况，助教的示例提交（基于 `clang -O0`）得分为 425/429，性能分约为 12.2%，评测花费了约二十五分钟。
+评测机单次评测总时限为一小时，评测时会将 `generator`、`optimizer` 目录以外的内容替换成本仓库中的内容，运行时长超过 2 分钟的编译结果会被跳过。因此本次实验中评测系统没有给出满分是正常的情况，助教的示例提交（基于 `clang -O0`）得分为 425/429，性能分约为 12.2%，评测花费了约二十五分钟。
 
 此外，因为评测集群的并发量有限（至多可以同时评测十六份提交）。请大家先在本地测试通过所有非 `tester/third_party` 目录下的算例后再提交。
 
@@ -116,12 +130,13 @@ entry:
    - 块间公共子表达式删除
    - 提取循环无关语句到循环外
    - Do what you want to do
-5. Do what you want to do
+5. [107_long_code2.sysu.c](../tester/h_functional/107_long_code2.sysu.c) 这个算例在测试时直接使用 `clang` 导出的语法树大小为 8.9G，助教这里直接给出了[压缩后的语法树](../tester/h_functional/107_long_code2.json.gz)。然而由于 `llvm::json::parse` 的性能过弱，在服务器上运行了十五分钟才解析完（对比 python 的 `json.loads` 仅花费八秒）。你可以使用编译原理课程上学到的知识实现一个高性能的 json 渲染库，并与 [RapidJSON](https://github.com/Tencent/rapidjson) 等高性能的 json 库进行性能对比。
+6. Do what you want to do
 
 ## 你可能会感兴趣的
 
 - [Kaleidoscope: Code generation to LLVM IR](https://releases.llvm.org/11.0.1/docs/tutorial/MyFirstLanguageFrontend/LangImpl03.html)
-- [LLVM 与 LLVM IR](https://buaa-se-compiling.github.io/miniSysY-tutorial/pre/llvm.html)
+- [SYsU-lang 实验三快速上手](https://www.yuque.com/shuitang/rra4fg/bnqy1c)
 - [Viz.js — Graphviz in your browser.](http://viz-js.com/)
 - [llvm::IRBuilder](https://github.com/llvm/llvm-project/blob/llvmorg-11.0.1/llvm/include/llvm/IR/IRBuilder.h)
   - 该文件同样位于 debian:11 中 [llvm-dev](https://packages.debian.org/bullseye/devel/llvm-dev) 包的 </usr/include/llvm/IR/IRBuilder.h>。
