@@ -7,16 +7,9 @@ name: Docker
 
 on:
   push:
-<<<<<<< HEAD
     branches: [unstable-slim]
   pull_request:
     branches: [unstable-slim]
-=======
-    branches: [latest]
-    tags: ["*"]
-  pull_request:
-    branches: [latest]
->>>>>>> latest
 
 env:
   # Use docker.io for Docker Hub if empty
