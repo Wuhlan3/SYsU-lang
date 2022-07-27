@@ -2,92 +2,295 @@
 #include <cctype>
 #include <cstdio>
 #include <string>
-#define YYEOF 0
+#include <iostream>
+#define YYEOF (0)
 int yylex();
 int main() {
+  // yyout = stderr; // to be same with clang -cc1 -dump-tokens
   do {
   } while (yylex() != YYEOF);
 }
-std::string yyloc = "<stdin>";
-int yyrow = 1, yycolumn = 1, yycolpre = 1;
+// std::string yyloc = "<stdin>";
+std::string path="";
+int yyrow = 1, yycolumn = 1, yycolpre = 1, pre_row = 0, pre_col = 1;
+
 #define YY_USER_ACTION                                                         \
   do {                                                                         \
     yycolumn += yyleng;                                                        \
   } while (0);
+void lexPrint(std::string str){
+  std::string start="";
+  std::string leading="";
+  if(pre_row != yyrow){
+    start=" [StartOfLine]";
+  }
+  if(pre_col != yycolumn - yyleng){
+    leading = " [LeadingSpace]";
+  }
+  pre_row = yyrow;
+  pre_col = yycolumn;
+  if(str == "eof"){
+    fprintf(yyout, "%s '%s'\t\tLoc=<%s:%d:%d>\n", str.c_str(), yytext,  path.c_str(), yyrow > 1 ? yyrow - 1 : yyrow, yycolpre - yyleng);
+  }else{
+    fprintf(yyout, "%s '%s'\t%s%s\tLoc=<%s:%d:%d>\n", str.c_str(), yytext, start.c_str(), leading.c_str(), path.c_str(), yyrow, yycolumn - yyleng);
+  }
+  
+}
 %}
 %option noyywrap
 %%
-#.* {
-  std::string s(yytext);
-  auto l = s.find("\""), r = s.rfind("\"");
-  yyloc = s.substr(l + 1, r - l - 1);
-  for (int i = 0; i < s.size(); ++i)
-    if (std::isdigit(s[i])) {
-      for (yyrow = 0; i < s.size() && std::isdigit(s[i]); ++i)
-        yyrow = yyrow * 10 + s[i] - '0';
-      --yyrow;
-      break;
-    }
+
+
+
+#\ [0-9]+\ \".*\"(\ |.)*\n {
+  std::string temp = std::string(yytext);
+  
+  //计算行和列
+  int num = 0;
+  int idx=2;
+  while(temp[idx]!=' '){
+    num *= 10;
+    num += (int)(temp[idx] - '0');
+    idx++;
+  }
+  yyrow = num;
+  yycolpre = yycolumn;
+  yycolumn = 1;
+
+  //计算路径
+  idx+=2;
+  int start = idx;
+  while(temp[idx]!='"'){
+    idx++;
+  }
+  int len = idx - start;
+  path = temp.substr(start, len);
 }
+
+\"[ \(\)\[\]\"\@\\n!\/]*\" {
+  lexPrint("string_literal");
+  return ~YYEOF;
+}
+
+int {
+  lexPrint("int");
+  return ~YYEOF;
+}
+
+char {
+  lexPrint("char");
+  return ~YYEOF;
+}
+
+return {
+  lexPrint("return");
+  return ~YYEOF;
+}
+
+const {
+  lexPrint("const");
+  return ~YYEOF;
+}
+
+break {
+  lexPrint("break");
+  return ~YYEOF;
+}
+
+continue {
+  lexPrint("continue");
+  return ~YYEOF;
+}
+
+for {
+  lexPrint("for");
+  return ~YYEOF;
+}
+
+void {
+  lexPrint("void");
+  return ~YYEOF;
+}
+
+if {
+  lexPrint("if");
+  return ~YYEOF;
+}
+
+else {
+  lexPrint("else");
+  return ~YYEOF;
+}
+
+
+while {
+  lexPrint("while");
+  return ~YYEOF;
+}
+
+do {
+  lexPrint("do");
+  return ~YYEOF;
+}
+
+\( {
+  lexPrint("l_paren");
+  return ~YYEOF;
+}
+
+\) {
+  lexPrint("r_paren");
+  return ~YYEOF;
+}
+
+\{ {
+  lexPrint("l_brace");
+  return ~YYEOF;
+}
+
+\} {
+  lexPrint("r_brace");
+  return ~YYEOF;
+}
+
+; {
+  lexPrint("semi");
+  return ~YYEOF;
+}
+
+! {
+  lexPrint("exclaim");
+  return ~YYEOF;
+}
+
+!= {
+  lexPrint("exclaimequal");
+  return ~YYEOF;
+}
+
+\<\= {
+  lexPrint("lessequal");
+  return ~YYEOF;
+}
+
+\>\= {
+  lexPrint("greaterequal");
+  return ~YYEOF;
+}
+
+== {
+  lexPrint("equalequal");
+  return ~YYEOF;
+}
+
+&& {
+  lexPrint("ampamp");
+  return ~YYEOF;
+}
+
+& {
+  lexPrint("amp");
+  return ~YYEOF;
+}
+
+\|\| {
+  lexPrint("pipepipe");
+  return ~YYEOF;
+}
+
+\| {
+  lexPrint("pipe");
+  return ~YYEOF;
+}
+
+= {
+  lexPrint("equal");
+  return ~YYEOF;
+}
+
+\+ {
+  lexPrint("plus");
+  return ~YYEOF;
+}
+
+\- {
+  lexPrint("minus");
+  return ~YYEOF;
+}
+
+\* {
+  lexPrint("star");
+  return ~YYEOF;
+}
+
+\/ {
+  lexPrint("slash");
+  return ~YYEOF;
+}
+
+\% {
+  lexPrint("percent");
+  return ~YYEOF;
+}
+
+, {
+  lexPrint("comma");
+  return ~YYEOF;
+}
+
+\[ {
+  lexPrint("l_square");
+  return ~YYEOF;
+}
+
+\] {
+  lexPrint("r_square");
+  return ~YYEOF;
+}
+
+\> {
+  lexPrint("greater");
+  return ~YYEOF;
+}
+
+\< {
+  lexPrint("less");
+  return ~YYEOF;
+}
+
+(0x[0-9a-fA-F]+)|([0-9]+) {
+  lexPrint("numeric_constant");
+  return ~YYEOF;
+}
+
+[a-zA-Z_][a-zA-Z_0-9]* {
+  lexPrint("identifier");
+  return ~YYEOF;
+}
+
+<<EOF>> {
+  // fprintf(yyout, "eof ''\t\tLoc=<<stdin>:%d:%d>\n",
+  //         yyrow > 1 ? yyrow - 1 : yyrow, yycolpre - yyleng);
+  lexPrint("eof");
+  return YYEOF;
+}
+
+#.* {
+  --yyrow;
+}
+
 \n {
   ++yyrow;
   yycolpre = yycolumn;
+  pre_col = 1;
   yycolumn = 1;
 }
+
 [\f\r\t\v ] {}
-int {
-  std::fprintf(yyout, "int '%s'\t\tLoc=<%s:%d:%d>\n", yytext, yyloc.c_str(),
-               yyrow, yycolumn - yyleng);
-  return ~YYEOF;
-}
-return {
-  std::fprintf(yyout, "return '%s'\t\tLoc=<%s:%d:%d>\n", yytext, yyloc.c_str(),
-               yyrow, yycolumn - yyleng);
-  return ~YYEOF;
-}
-\( {
-  std::fprintf(yyout, "l_paren '%s'\t\tLoc=<%s:%d:%d>\n", yytext, yyloc.c_str(),
-               yyrow, yycolumn - yyleng);
-  return ~YYEOF;
-}
-\) {
-  std::fprintf(yyout, "r_paren '%s'\t\tLoc=<%s:%d:%d>\n", yytext, yyloc.c_str(),
-               yyrow, yycolumn - yyleng);
-  return ~YYEOF;
-}
-\{ {
-  std::fprintf(yyout, "l_brace '%s'\t\tLoc=<%s:%d:%d>\n", yytext, yyloc.c_str(),
-               yyrow, yycolumn - yyleng);
-  return ~YYEOF;
-}
-\} {
-  std::fprintf(yyout, "r_brace '%s'\t\tLoc=<%s:%d:%d>\n", yytext, yyloc.c_str(),
-               yyrow, yycolumn - yyleng);
-  return ~YYEOF;
-}
-; {
-  std::fprintf(yyout, "semi '%s'\t\tLoc=<%s:%d:%d>\n", yytext, yyloc.c_str(),
-               yyrow, yycolumn - yyleng);
-  return ~YYEOF;
-}
-[0-9]+ {
-  std::fprintf(yyout, "numeric_constant '%s'\t\tLoc=<%s:%d:%d>\n", yytext,
-               yyloc.c_str(), yyrow, yycolumn - yyleng);
-  return ~YYEOF;
-}
-[a-zA-Z_][a-zA-Z_0-9]* {
-  std::fprintf(yyout, "identifier '%s'\t\tLoc=<%s:%d:%d>\n", yytext,
-               yyloc.c_str(), yyrow, yycolumn - yyleng);
-  return ~YYEOF;
-}
-<<EOF>> {
-  std::fprintf(yyout, "eof ''\t\tLoc=<%s:%d:%d>\n", yyloc.c_str(), yyrow - 1,
-               yycolpre - yyleng);
-  return YYEOF;
-}
+
 . {
-  std::fprintf(yyout, "unknown '%s'\t\tLoc=<%s:%d:%d>\n", yytext, yyloc.c_str(),
-               yyrow, yycolumn - yyleng);
+  lexPrint("unknown");
   return ~YYEOF;
 }
+
 %%
