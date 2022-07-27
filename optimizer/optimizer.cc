@@ -1,6 +1,12 @@
 #include "optimizer.hh"
 
 #include <llvm/Passes/PassBuilder.h>
+#include <llvm/Transforms/Utils/BasicBlockUtils.h>
+#include <llvm/Transforms/Utils/Local.h>
+#include <llvm/IR/IRBuilder.h>
+#include <llvm/IR/LLVMContext.h>
+#include <llvm/IR/Module.h>
+#include <iostream>
 
 llvm::PreservedAnalyses
 sysu::StaticCallCounterPrinter::run(llvm::Module &M,
@@ -57,6 +63,67 @@ sysu::StaticCallCounter::run(llvm::Module &M, llvm::ModuleAnalysisManager &) {
   }
 
   return Res;
+}
+
+
+bool isCommon(llvm::BasicBlock::iterator i, llvm::BasicBlock::iterator j) {
+  std::string OpName1 = i->getOpcodeName();
+  std::string OpName2 = j->getOpcodeName();
+	if(OpName1 == OpName2){
+		if(i->getType()==j->getType()){
+      int num1 = i->getNumOperands();
+      int num2 = j->getNumOperands();
+			if(num1 == num2){
+				for(auto k=0;k<num1;k++){
+					if(i->getOperand(k)!=j->getOperand(k))return 0;
+				}
+				return 1;
+			}
+    }
+  }
+  return 0;
+}
+
+llvm::PreservedAnalyses
+sysu::CommonSubexpressionElimination::run(llvm::Module &M,llvm::ModuleAnalysisManager &MAM) {
+
+  for (auto &Func : M) {
+    for (auto &BB : Func) {
+      for (auto i = BB.begin();i!=BB.end();i++) {
+        if(strcmp(i->getOpcodeName(),"alloca")==0||strcmp(i->getOpcodeName(),"call")==0){
+          continue;
+        }
+        auto j = i;
+        j++;
+        for(;j!=BB.end();){
+          //若出现下一个store,说明变量会发生改变
+          bool changed = false;
+          std::string opName = j->getOpcodeName();
+          if(opName == "store"){
+            for(int k=0;k<i->getNumOperands();k++){
+              if(j->getOperand(1)==i->getOperand(k)){
+                changed = true;
+              }
+            }
+          }
+          if(changed)break;
+          //判断语句是否相似
+          if(isCommon(i,j)){
+            j++;
+            auto temp = j;
+            j--;
+            llvm::ReplaceInstWithValue(j->getParent()->getInstList(),j,&*i);
+            j = temp;
+          }
+          else{
+            j++;
+          }
+        }
+      }
+    }
+  }
+
+  return llvm::PreservedAnalyses::none();
 }
 
 llvm::AnalysisKey sysu::StaticCallCounter::Key;

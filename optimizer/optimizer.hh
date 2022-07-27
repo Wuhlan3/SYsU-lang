@@ -35,6 +35,15 @@ private:
   llvm::raw_ostream &OS;
 };
 
+
+class CommonSubexpressionElimination:public llvm::PassInfoMixin<CommonSubexpressionElimination>{
+public:
+  explicit CommonSubexpressionElimination(){}
+  llvm::PreservedAnalyses run(llvm::Module &M,llvm::ModuleAnalysisManager &MAM);
+private:
+
+};
+
 } // namespace sysu
 
 extern "C" {

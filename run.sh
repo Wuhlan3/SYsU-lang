@@ -1,0 +1,1 @@
+export PATH=~/sysu/bin:$PATH   CPATH=~/sysu/include:$CPATH   LIBRARY_PATH=~/sysu/lib:$LIBRARY_PATH   LD_LIBRARY_PATH=~/sysu/lib:$LD_LIBRARY_PATH &&  clang -E tester/wuhlan.c | clang -cc1 -ast-dump=json | /home/wuhlan3/sysu/build/generator/sysu-generator | /home/wuhlan3/sysu/build/optimizer/sysu-optimizer

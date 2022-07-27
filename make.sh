@@ -1,0 +1,1 @@
+cmake --build ~/sysu/build &&  cmake --build ~/sysu/build -t install

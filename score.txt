@@ -1,0 +1,94 @@
+[0/1] Running tests...
+Test project /home/wuhlan3/sysu/build
+      Start  1: lexer-0
+ 1/10 Test  #1: lexer-0 ...............................   Passed    0.55 sec
+      Start  2: lexer-1
+ 2/10 Test  #2: lexer-1 ...............................***Failed    1.67 sec
+[0/38] /home/wuhlan3/lab3-new/SYsU-lang/tester/h_functional/081_exgcd.sysu.c
+
+fail: counts of tokens are different
+---
+/home/wuhlan3/lab3-new/SYsU-lang/preprocessor/sysu-preprocessor /home/wuhlan3/lab3-new/SYsU-lang/tester/h_functional/081_exgcd.sysu.c | clang -cc1 -dump-tokens 2>&1 
+/home/wuhlan3/lab3-new/SYsU-lang/preprocessor/sysu-preprocessor /home/wuhlan3/lab3-new/SYsU-lang/tester/h_functional/081_exgcd.sysu.c | /home/wuhlan3/sysu/build/lexer/sysu-lexer 2>&1 
+
+      Start  3: lexer-2
+ 3/10 Test  #3: lexer-2 ...............................***Failed    2.39 sec
+[0/38] /home/wuhlan3/lab3-new/SYsU-lang/tester/h_functional/081_exgcd.sysu.c
+
+fail: counts of tokens are different
+---
+/home/wuhlan3/lab3-new/SYsU-lang/preprocessor/sysu-preprocessor /home/wuhlan3/lab3-new/SYsU-lang/tester/h_functional/081_exgcd.sysu.c | clang -cc1 -dump-tokens 2>&1 
+/home/wuhlan3/lab3-new/SYsU-lang/preprocessor/sysu-preprocessor /home/wuhlan3/lab3-new/SYsU-lang/tester/h_functional/081_exgcd.sysu.c | /home/wuhlan3/sysu/build/lexer/sysu-lexer 2>&1 
+
+      Start  4: lexer-3
+ 4/10 Test  #4: lexer-3 ...............................***Failed    2.13 sec
+[0/38] /home/wuhlan3/lab3-new/SYsU-lang/tester/h_functional/081_exgcd.sysu.c
+
+fail: counts of tokens are different
+---
+/home/wuhlan3/lab3-new/SYsU-lang/preprocessor/sysu-preprocessor /home/wuhlan3/lab3-new/SYsU-lang/tester/h_functional/081_exgcd.sysu.c | clang -cc1 -dump-tokens 2>&1 
+/home/wuhlan3/lab3-new/SYsU-lang/preprocessor/sysu-preprocessor /home/wuhlan3/lab3-new/SYsU-lang/tester/h_functional/081_exgcd.sysu.c | /home/wuhlan3/sysu/build/lexer/sysu-lexer 2>&1 
+
+      Start  5: parser-0
+ 5/10 Test  #5: parser-0 ..............................   Passed    0.34 sec
+      Start  6: parser-1
+ 6/10 Test  #6: parser-1 ..............................***Failed    2.41 sec
+[0/38] /home/wuhlan3/lab3-new/SYsU-lang/tester/h_functional/081_exgcd.sysu.c
+syntax errorSegmentation fault (core dumped)
+Traceback (most recent call last):
+  File "/home/wuhlan3/lab3-new/SYsU-lang/compiler/sysu-compiler", line 536, in <module>
+    exit(main(*sys.argv))
+  File "/home/wuhlan3/lab3-new/SYsU-lang/compiler/sysu-compiler", line 511, in main
+    return unittest_parser(args.unittest, args.clang,
+  File "/home/wuhlan3/lab3-new/SYsU-lang/compiler/sysu-compiler", line 129, in unittest_parser
+    ast1 = json.loads(subprocess.run(
+  File "/usr/lib/python3.9/json/__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+  File "/usr/lib/python3.9/json/decoder.py", line 337, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+  File "/usr/lib/python3.9/json/decoder.py", line 355, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+
+      Start  7: parser-2
+ 7/10 Test  #7: parser-2 ..............................***Failed    1.75 sec
+[0/38] /home/wuhlan3/lab3-new/SYsU-lang/tester/h_functional/081_exgcd.sysu.c
+syntax errorSegmentation fault (core dumped)
+Traceback (most recent call last):
+  File "/home/wuhlan3/lab3-new/SYsU-lang/compiler/sysu-compiler", line 536, in <module>
+    exit(main(*sys.argv))
+  File "/home/wuhlan3/lab3-new/SYsU-lang/compiler/sysu-compiler", line 511, in main
+    return unittest_parser(args.unittest, args.clang,
+  File "/home/wuhlan3/lab3-new/SYsU-lang/compiler/sysu-compiler", line 129, in unittest_parser
+    ast1 = json.loads(subprocess.run(
+  File "/usr/lib/python3.9/json/__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+  File "/usr/lib/python3.9/json/decoder.py", line 337, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+  File "/usr/lib/python3.9/json/decoder.py", line 355, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+
+      Start  8: parser-3
+ 8/10 Test  #8: parser-3 ..............................***Failed    1.86 sec
+[0/38] /home/wuhlan3/lab3-new/SYsU-lang/tester/h_functional/081_exgcd.sysu.c
+syntax errorSegmentation fault (core dumped)
+Traceback (most recent call last):
+  File "/home/wuhlan3/lab3-new/SYsU-lang/compiler/sysu-compiler", line 536, in <module>
+    exit(main(*sys.argv))
+  File "/home/wuhlan3/lab3-new/SYsU-lang/compiler/sysu-compiler", line 511, in main
+    return unittest_parser(args.unittest, args.clang,
+  File "/home/wuhlan3/lab3-new/SYsU-lang/compiler/sysu-compiler", line 129, in unittest_parser
+    ast1 = json.loads(subprocess.run(
+  File "/usr/lib/python3.9/json/__init__.py", line 346, in loads
+    return _default_decoder.decode(s)
+  File "/usr/lib/python3.9/json/decoder.py", line 337, in decode
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+  File "/usr/lib/python3.9/json/decoder.py", line 355, in raw_decode
+    raise JSONDecodeError("Expecting value", s, err.value) from None
+json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+
+      Start  9: benchmark_generator_and_optimizer_0
+ 9/10 Test  #9: benchmark_generator_and_optimizer_0 ...   Passed    0.32 sec
+      Start 10: benchmark_generator_and_optimizer_1
+ninja: build stopped: interrupted by user.
